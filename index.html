@@ -1,8 +1,6 @@
-const response = await fetch("https://YOUR-WORKER-NAME.ushishibaku.workers.dev/", {
+const response = await fetch("https://divine-hill-86d9.ushishibaku.workers.dev/", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     model: model,
     messages: [{ role: "user", content: message }]
