@@ -32,18 +32,27 @@
     appendMessage("user", message);
     input.value = "";
 
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: model,
-        messages: [{ role: "user", content: message }]
-      })
-    });
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "user", content: message }]
+        })
+      });
 
-    const data = await response.json();
-    const aiReply = data.choices[0].message.content;
-    appendMessage("ai", aiReply);
+      if (!response.ok) {
+        appendMessage("ai", "エラーが発生しました: " + response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const aiReply = data.choices[0].message.content;
+      appendMessage("ai", aiReply);
+    } catch (error) {
+      appendMessage("ai", "通信エラー: " + error);
+    }
   }
 
   function appendMessage(role, text) {
