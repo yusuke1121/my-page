@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My ChatGPT Page (Cloudflare完成版)</title>
+  <title>My Page</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
@@ -38,4 +38,34 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: model,
-          messages: [{ role: "us]()
+          messages: [{ role: "user", content: message }]
+        })
+      });
+
+      if (!response.ok) {
+        appendMessage("ai", "エラーが発生しました: " + response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const aiReply = data.choices[0].message.content;
+      appendMessage("ai", aiReply);
+    } catch (error) {
+      appendMessage("ai", "通信エラー: " + error);
+    }
+  }
+
+  function appendMessage(role, text) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = "message " + role;
+    // ✅ ここがポイント
+    const formattedText = text.replace(/\n/g, "<br>");
+    div.innerHTML = (role === "user" ? "あなた: " : "AI: ") + formattedText;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
