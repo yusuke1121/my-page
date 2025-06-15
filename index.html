@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全統合ストリーミング版</title>
+  <title>AI SaaS Business Assistant - 完全統合版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -19,6 +19,7 @@
     .tooltip { position: relative; display: inline-block; }
     .tooltip .tooltiptext { visibility: hidden; width: max-content; background-color: black; color: #fff; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
     .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    .download { margin-top: 5px; }
     table { border-collapse: collapse; width: 100%; margin: 10px 0; }
     table, th, td { border: 1px solid #ccc; }
     th, td { padding: 8px 12px; text-align: left; }
@@ -29,7 +30,7 @@
 
 <body>
 
-<header>AI SaaS Business Assistant 💼 完全統合版 (ストリーミング対応)</header>
+<header>AI SaaS Business Assistant 💼 完全統合版</header>
 
 <div id="container">
 
@@ -43,10 +44,11 @@
   </div>
 
   <div>
+    <!-- ここからプロンプトボタン群 -->
     <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
     <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信(.eml対応)</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信(.eml対応)</span></span>
     <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約</span></span>
     <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
     <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
@@ -57,11 +59,10 @@
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
     <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
   </div>
-
 </div>
-
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
+  let isEmailReply = false;
 
   document.getElementById("userInput").addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -114,19 +115,42 @@
                 fullText += content;
                 lastBubble.innerHTML = marked.parse(fullText);
               }
-            } catch (err) {
-              console.error("JSON parse error", err);
-            }
+            } catch (err) {}
           }
         }
       }
       saveHistory("ai", fullText, time);
+      if (isEmailReply) createDownloadEML(fullText, time);
+      isEmailReply = false;
 
     } catch (err) {
       lastBubble.innerHTML = "🚫 通信エラー: " + err;
     }
   }
 
+  function createDownloadEML(content, time) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = "download";
+    const button = document.createElement("button");
+    button.innerText = "📥 Download .eml";
+    button.onclick = () => {
+      const eml = `From: your.name@example.com
+To: recipient@example.com
+Subject: AI Generated Email
+Date: ${new Date().toUTCString()}
+Content-Type: text/plain; charset=UTF-8
+
+${content}`;
+      const blob = new Blob([eml], { type: "message/rfc822" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `email_${time.replace(/[:/ ]/g,"_")}.eml`;
+      link.click();
+    };
+    div.appendChild(button);
+    chat.appendChild(div);
+  }
   function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
@@ -155,20 +179,26 @@
   }
 
   function sendTranslation(lang) {
-    const text = document.getElementById("userInput").value.trim(); if (!text) return;
-    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` : `Please translate into English:\n\n${text}`;
+    const text = document.getElementById("userInput").value.trim(); 
+    if (!text) return;
+    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` 
+                                    : `Please translate into English:\n\n${text}`;
     sendMessage(prompt);
   }
 
   function sendReplyEmail(lang) {
-    const text = document.getElementById("userInput").value.trim(); if (!text) return;
-    const prompt = (lang === "ja") ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
-                                    : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
+    const text = document.getElementById("userInput").value.trim(); 
+    if (!text) return;
+    const prompt = (lang === "ja") 
+      ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
+      : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
+    isEmailReply = true;
     sendMessage(prompt);
   }
 
   function sendPrompt(type) {
-    const text = document.getElementById("userInput").value.trim(); if (!text) return;
+    const text = document.getElementById("userInput").value.trim();
+    if (!text) return;
     const prompts = {
       summary: `以下の文章を要約してください。箇条書きでも構いません。\n\n${text}`,
       action: `以下の内容から次のアクション項目を抽出してください。箇条書きで。\n\n${text}`,
