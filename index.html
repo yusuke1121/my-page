@@ -2,24 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My Page 安定版4 (完全版)</title>
+  <title>My AI Chat (UX強化版)</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
-    .message { margin: 5px 0; }
-    .user { color: blue; }
-    .ai { color: green; }
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 500px; overflow-y: auto; margin-bottom: 10px; background-color: #fff; }
+    .message { margin: 5px 0; padding: 5px; border-radius: 5px; }
+    .user { color: #0b5394; background-color: #d9e1f2; }
+    .ai { color: #38761d; background-color: #d9ead3; }
+    textarea { font-size: 16px; }
   </style>
 </head>
 <body>
 
-<h1>My Page 安定版4 (完全版)</h1>
+<h1>My AI Chat (UX強化版)</h1>
 
 <div id="chat"></div>
 
 <textarea id="userInput" placeholder="メッセージを入力" style="width: 80%; height: 60px;"></textarea><br><br>
-<button onclick="sendMessage()">送信</button>
-<button onclick="clearHistory()">履歴を削除</button>
+<button onclick="sendMessage()">送信 🚀</button>
+<button onclick="clearHistory()">履歴を削除 🗑️</button>
 
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
@@ -46,8 +47,8 @@
       });
 
       if (!response.ok) {
-        appendMessage("ai", "エラー: " + response.status);
-        saveHistory("ai", "エラー: " + response.status);
+        appendMessage("ai", `⚠️ エラー: ${response.status}`);
+        saveHistory("ai", `⚠️ エラー: ${response.status}`);
         return;
       }
 
@@ -55,8 +56,8 @@
       appendMessage("ai", data.reply);
       saveHistory("ai", data.reply);
     } catch (error) {
-      appendMessage("ai", "通信エラー: " + error);
-      saveHistory("ai", "通信エラー: " + error);
+      appendMessage("ai", `🚫 通信エラー: ${error}`);
+      saveHistory("ai", `🚫 通信エラー: ${error}`);
     }
   }
 
@@ -64,7 +65,8 @@
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
     div.className = "message " + role;
-    div.innerHTML = (role === "user" ? "あなた: " : "AI: ") + text.replace(/\n/g, "<br>");
+    const safeText = escapeHTML(text).replace(/\n/g, "<br>");
+    div.innerHTML = (role === "user" ? "👤 あなた: " : "🤖 AI: ") + safeText;
     chat.appendChild(div);
     if (scroll) chat.scrollTop = chat.scrollHeight;
   }
@@ -78,6 +80,12 @@
   function clearHistory() {
     localStorage.removeItem("chatHistory");
     document.getElementById("chat").innerHTML = "";
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m];
+    });
   }
 </script>
 
