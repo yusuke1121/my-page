@@ -38,32 +38,4 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: model,
-          messages: [{ role: "user", content: message }]
-        })
-      });
-
-      if (!response.ok) {
-        appendMessage("ai", "エラーが発生しました: " + response.status);
-        return;
-      }
-
-      const data = await response.json();
-      const aiReply = data.choices[0].message.content;
-      appendMessage("ai", aiReply);
-    } catch (error) {
-      appendMessage("ai", "通信エラー: " + error);
-    }
-  }
-　
-  function appendMessage(role, text) {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "message " + role;
-    div.textContent = (role === "user" ? "あなた: " : "AI: ") + text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-</script>
-
-</body>
-</html>
+          messages: [{ role: "us]()
