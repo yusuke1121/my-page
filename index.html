@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - テンプレ挿入版</title>
+  <title>AI SaaS Business Assistant - テンプレ登録版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -26,7 +26,7 @@
 
 <body>
 
-<header>AI SaaS Business Assistant 💼 テンプレ挿入版</header>
+<header>AI SaaS Business Assistant 💼 テンプレ登録版</header>
 
 <div id="container">
 
@@ -40,7 +40,7 @@
   </div>
 
   <div>
-    <!-- プロンプトボタン群 -->
+    <!-- ここにプロンプトボタン群とテンプレ挿入ボタン群が入ります -->
     <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
     <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
     <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文メール(.emlドラフト)</span></span>
@@ -55,11 +55,19 @@
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
     <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
 
-    <!-- テンプレート挿入ボタン -->
-    <br><br>
-    <span class="tooltip"><button onclick="insertTemplate('候補日: ○月○日（○曜日） 〜 ○月○日（○曜日）\\n時間帯: 午前 / 午後')">📅</button><span class="tooltiptext">日程調整テンプレ</span></span>
-    <span class="tooltip"><button onclick="insertTemplate('拝啓 ○○様\\nいつもお世話になっております。\\n\\n以下の件につきましてご連絡申し上げます。\\n\\n')">📧</button><span class="tooltiptext">メール定型文</span></span>
-    <span class="tooltip"><button onclick="insertTemplate('会議名: \\n日時: \\n出席者: \\n議事内容:\\n- ')">📝</button><span class="tooltiptext">議事録テンプレ</span></span>
+    <!-- テンプレ登録フォーム -->
+    <div style="margin-top: 20px;">
+      <h3>新規テンプレ登録</h3>
+      <input type="text" id="templateTitle" placeholder="テンプレート名" style="width: 30%; padding: 5px;">
+      <input type="text" id="templateContent" placeholder="テンプレート内容" style="width: 50%; padding: 5px;">
+      <button onclick="addTemplate()">➕ 登録</button>
+    </div>
+
+    <!-- 登録済みテンプレート出力エリア -->
+    <div style="margin-top: 10px;">
+      <h3>登録済みテンプレ</h3>
+      <div id="templateButtons"></div>
+    </div>
   </div>
 </div>
 <script>
@@ -73,6 +81,7 @@
   window.onload = () => {
     const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
     history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
+    loadTemplates();
   };
 
   async function sendMessage(prompt = null) {
@@ -154,8 +163,33 @@ ${content}`;
   }
 
   function insertTemplate(templateText) {
-    document.getElementById("userInput").value = templateText.replace(/\\n/g, "\n");
+    document.getElementById("userInput").value = templateText;
   }
+
+  function addTemplate() {
+    const title = document.getElementById("templateTitle").value.trim();
+    const content = document.getElementById("templateContent").value.trim();
+    if (!title || !content) return;
+    const templates = JSON.parse(localStorage.getItem("templates") || "[]");
+    templates.push({ title, content });
+    localStorage.setItem("templates", JSON.stringify(templates));
+    document.getElementById("templateTitle").value = "";
+    document.getElementById("templateContent").value = "";
+    loadTemplates();
+  }
+
+  function loadTemplates() {
+    const templates = JSON.parse(localStorage.getItem("templates") || "[]");
+    const area = document.getElementById("templateButtons");
+    area.innerHTML = "";
+    templates.forEach(({ title, content }) => {
+      const btn = document.createElement("button");
+      btn.innerText = title;
+      btn.onclick = () => insertTemplate(content);
+      area.appendChild(btn);
+    });
+  }
+</script>
   function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
