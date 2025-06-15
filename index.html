@@ -2,45 +2,60 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My AI Chat (UX超強化版)</title>
+  <title>My AI SaaS Chat (完全進化版)</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 500px; overflow-y: auto; margin-bottom: 10px; background-color: #fff; }
-    .message { margin: 5px 0; padding: 5px; border-radius: 5px; }
-    .user { color: #0b5394; background-color: #d9e1f2; }
-    .ai { color: #38761d; background-color: #d9ead3; }
-    textarea { font-size: 16px; }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; }
+    #container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 600px; overflow-y: auto; background-color: #fff; border-radius: 10px; }
+    .message { margin: 10px; display: flex; flex-direction: column; }
+    .userBubble, .aiBubble { max-width: 70%; padding: 10px; border-radius: 10px; line-height: 1.4; }
+    .userBubble { background-color: #d9e1f2; align-self: flex-end; }
+    .aiBubble { background-color: #d9ead3; align-self: flex-start; }
+    .timestamp { font-size: 0.75em; color: #888; margin-top: 3px; }
+    textarea { width: 100%; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none; }
+    button { margin-top: 10px; font-size: 16px; padding: 10px 20px; border-radius: 5px; border: none; background-color: #0078d4; color: white; }
+    button:disabled { background-color: #ccc; }
   </style>
-
-  <!-- marked.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
-<h1>My AI Chat (UX超強化版)</h1>
+<div id="container">
+  <h1>My AI SaaS Chat 💬</h1>
 
-<div id="chat"></div>
+  <div id="chat"></div>
 
-<textarea id="userInput" placeholder="メッセージを入力" style="width: 80%; height: 60px;"></textarea><br><br>
-<button onclick="sendMessage()">送信 🚀</button>
-<button onclick="clearHistory()">履歴を削除 🗑️</button>
+  <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
+  <button id="sendBtn" onclick="sendMessage()">送信 🚀</button>
+  <button onclick="clearHistory()">履歴を削除 🗑️</button>
+</div>
 
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
 
   window.onload = () => {
     const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-    history.forEach(({role, text}) => appendMessage(role, text, false));
+    history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
   };
+
+  document.getElementById("userInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 
   async function sendMessage() {
     const input = document.getElementById("userInput");
     const message = input.value.trim();
     if (!message) return;
 
-    appendMessage("user", message);
-    saveHistory("user", message);
+    const time = new Date().toLocaleString();
+    appendMessage("user", message, time);
+    saveHistory("user", message, time);
     input.value = "";
+
+    appendMessage("ai", "__thinking__", time); // loading
 
     try {
       const response = await fetch(apiEndpoint, {
@@ -50,36 +65,54 @@
       });
 
       if (!response.ok) {
-        appendMessage("ai", `⚠️ エラー: ${response.status}`);
-        saveHistory("ai", `⚠️ エラー: ${response.status}`);
+        updateLastAIMessage(`⚠️ エラー: ${response.status}`);
+        saveHistory("ai", `⚠️ エラー: ${response.status}`, time);
         return;
       }
 
       const data = await response.json();
-      appendMessage("ai", data.reply);
-      saveHistory("ai", data.reply);
+      updateLastAIMessage(data.reply);
+      saveHistory("ai", data.reply, time);
     } catch (error) {
-      appendMessage("ai", `🚫 通信エラー: ${error}`);
-      saveHistory("ai", `🚫 通信エラー: ${error}`);
+      updateLastAIMessage(`🚫 通信エラー: ${error}`);
+      saveHistory("ai", `🚫 通信エラー: ${error}`, time);
     }
   }
 
-  function appendMessage(role, text, scroll = true) {
+  function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
-    div.className = "message " + role;
+    div.className = "message";
 
-    // MarkdownパースしてHTML化
-    const parsedHTML = marked.parse(text);
+    const bubble = document.createElement("div");
+    bubble.className = role === "user" ? "userBubble" : "aiBubble";
 
-    div.innerHTML = (role === "user" ? "👤 あなた: " : "🤖 AI: ") + parsedHTML;
+    if (text === "__thinking__") {
+      bubble.innerHTML = `<i>🤖 考え中...</i>`;
+    } else {
+      bubble.innerHTML = marked.parse(text);
+    }
+
+    const timestamp = document.createElement("div");
+    timestamp.className = "timestamp";
+    timestamp.textContent = time;
+
+    div.appendChild(bubble);
+    div.appendChild(timestamp);
     chat.appendChild(div);
     if (scroll) chat.scrollTop = chat.scrollHeight;
   }
 
-  function saveHistory(role, text) {
+  function updateLastAIMessage(text) {
+    const chat = document.getElementById("chat");
+    const messages = chat.getElementsByClassName("aiBubble");
+    const lastBubble = messages[messages.length - 1];
+    lastBubble.innerHTML = marked.parse(text);
+  }
+
+  function saveHistory(role, text, time) {
     const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-    history.push({ role, text });
+    history.push({ role, text, time });
     localStorage.setItem("chatHistory", JSON.stringify(history));
   }
 
