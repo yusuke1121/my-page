@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全統合版</title>
+  <title>AI SaaS Business Assistant - 完全統合ストリーミング版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -23,14 +23,13 @@
     table, th, td { border: 1px solid #ccc; }
     th, td { padding: 8px 12px; text-align: left; }
     thead { background-color: #f0f0f0; }
-    @media (max-width: 600px) { #chat { height: 60vh; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
 
-<header>AI Business SaaS Assistant 💼 完全統合版</header>
+<header>AI SaaS Business Assistant 💼 完全統合版 (ストリーミング対応)</header>
 
 <div id="container">
 
@@ -82,37 +81,65 @@
     saveHistory("user", message, time);
     if (!prompt) input.value = "";
     appendMessage("ai", "", time);
+
     const chat = document.getElementById("chat");
     const bubbles = chat.getElementsByClassName("aiBubble");
     const lastBubble = bubbles[bubbles.length - 1];
+
     try {
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message })
       });
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let fullText = "";
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        fullText += chunk;
-        lastBubble.innerHTML = marked.parse(fullText);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.substring(6).trim();
+            if (data === "[DONE]") break;
+            try {
+              const json = JSON.parse(data);
+              const content = json.choices[0].delta?.content;
+              if (content) {
+                fullText += content;
+                lastBubble.innerHTML = marked.parse(fullText);
+              }
+            } catch (err) {
+              console.error("JSON parse error", err);
+            }
+          }
+        }
       }
       saveHistory("ai", fullText, time);
-    } catch (err) { lastBubble.innerHTML = "🚫 通信エラー: " + err; }
+
+    } catch (err) {
+      lastBubble.innerHTML = "🚫 通信エラー: " + err;
+    }
   }
 
   function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
-    const div = document.createElement("div"); div.className = "message";
+    const div = document.createElement("div");
+    div.className = "message";
     const bubble = document.createElement("div");
     bubble.className = role === "user" ? "userBubble" : "aiBubble";
     bubble.innerHTML = marked.parse(text);
-    const timestamp = document.createElement("div"); timestamp.className = "timestamp"; timestamp.textContent = time;
-    div.appendChild(bubble); div.appendChild(timestamp); chat.appendChild(div);
+    const timestamp = document.createElement("div");
+    timestamp.className = "timestamp";
+    timestamp.textContent = time;
+    div.appendChild(bubble);
+    div.appendChild(timestamp);
+    chat.appendChild(div);
     if (scroll) chat.scrollTop = chat.scrollHeight;
   }
 
@@ -122,7 +149,10 @@
     localStorage.setItem("chatHistory", JSON.stringify(history));
   }
 
-  function clearHistory() { localStorage.removeItem("chatHistory"); document.getElementById("chat").innerHTML = ""; }
+  function clearHistory() {
+    localStorage.removeItem("chatHistory");
+    document.getElementById("chat").innerHTML = "";
+  }
 
   function sendTranslation(lang) {
     const text = document.getElementById("userInput").value.trim(); if (!text) return;
