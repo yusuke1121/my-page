@@ -2,127 +2,35 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全テンプレート最新版</title>
+  <title>AI SaaS Business Assistant - 完全統合版</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f2f2f2;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background-color: #0078d4;
-      color: white;
-      padding: 15px 20px;
-      font-size: 1.5em;
-    }
-    #container {
-      flex: 1;
-      max-width: 95%;
-      margin: 0 auto;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    #chat {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 70vh;
-      overflow-y: auto;
-      background-color: #fff;
-      border-radius: 10px;
-    }
-    .message {
-      margin: 10px;
-      display: flex;
-      flex-direction: column;
-    }
-    .userBubble, .aiBubble {
-      max-width: 90%;
-      padding: 10px;
-      border-radius: 10px;
-      line-height: 1.4;
-      word-break: break-word;
-    }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
+    #container { flex: 1; max-width: 95%; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 70vh; overflow-y: auto; background-color: #fff; border-radius: 10px; }
+    .message { margin: 10px; display: flex; flex-direction: column; }
+    .userBubble, .aiBubble { max-width: 90%; padding: 10px; border-radius: 10px; line-height: 1.4; word-break: break-word; }
     .userBubble { background-color: #d9e1f2; align-self: flex-end; }
     .aiBubble { background-color: #d9ead3; align-self: flex-start; }
-    .timestamp {
-      font-size: 0.75em;
-      color: #888;
-      margin-top: 3px;
-    }
-    textarea {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      resize: none;
-      box-sizing: border-box;
-    }
-    button {
-      margin: 5px 5px 5px 0;
-      font-size: 20px;
-      padding: 10px 15px;
-      border-radius: 5px;
-      border: none;
-      background-color: #0078d4;
-      color: white;
-      cursor: pointer;
-    }
+    .timestamp { font-size: 0.75em; color: #888; margin-top: 3px; }
+    textarea { width: 100%; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none; box-sizing: border-box; }
+    button { margin: 5px 5px 5px 0; font-size: 20px; padding: 10px 15px; border-radius: 5px; border: none; background-color: #0078d4; color: white; cursor: pointer; }
     button:disabled { background-color: #ccc; }
-    .tooltip {
-      position: relative;
-      display: inline-block;
-    }
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: max-content;
-      background-color: black;
-      color: #fff;
-      text-align: center;
-      border-radius: 5px;
-      padding: 5px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%; left: 50%;
-      transform: translateX(-50%);
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
-    }
-
-    /* === ChatGPT風テーブル整形ここから追加 === */
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin: 10px 0;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 8px 12px;
-      text-align: left;
-    }
-    thead {
-      background-color: #f0f0f0;
-    }
-    /* === 追加ここまで === */
-
-    @media (max-width: 600px) {
-      #chat { height: 60vh; }
-    }
+    .tooltip { position: relative; display: inline-block; }
+    .tooltip .tooltiptext { visibility: hidden; width: max-content; background-color: black; color: #fff; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
+    .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 8px 12px; text-align: left; }
+    thead { background-color: #f0f0f0; }
+    @media (max-width: 600px) { #chat { height: 60vh; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
 
-<header>AI Business SaaS Assistant 💼</header>
+<header>AI Business SaaS Assistant 💼 完全統合版</header>
 
 <div id="container">
 
@@ -136,22 +44,19 @@
   </div>
 
   <div>
-
     <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
     <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
-
-    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信作成</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信作成</span></span>
-
-    <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約作成</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約</span></span>
     <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
     <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
     <span class="tooltip"><button onclick="sendPrompt('polite')">📌</button><span class="tooltiptext">丁寧表現</span></span>
-    <span class="tooltip"><button onclick="sendPrompt('schedule')">📅</button><span class="tooltiptext">日程調整文</span></span>
-    <span class="tooltip"><button onclick="sendPrompt('call')">📞</button><span class="tooltiptext">電話メモ要約</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('schedule')">📅</button><span class="tooltiptext">日程調整</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('call')">📞</button><span class="tooltiptext">電話メモ</span></span>
     <span class="tooltip"><button onclick="sendPrompt('problems')">🔎</button><span class="tooltiptext">問題点指摘</span></span>
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
-
+    <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
   </div>
 
 </div>
@@ -176,15 +81,28 @@
     appendMessage("user", message, time);
     saveHistory("user", message, time);
     if (!prompt) input.value = "";
-    appendMessage("ai", "__thinking__", time); 
+    appendMessage("ai", "", time);
+    const chat = document.getElementById("chat");
+    const bubbles = chat.getElementsByClassName("aiBubble");
+    const lastBubble = bubbles[bubbles.length - 1];
     try {
-      const response = await fetch(apiEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) });
-      const data = await response.json();
-      updateLastAIMessage(data.reply);
-      saveHistory("ai", data.reply, time);
-    } catch (error) {
-      updateLastAIMessage("🚫 通信エラー");
-    }
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullText = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        lastBubble.innerHTML = marked.parse(fullText);
+      }
+      saveHistory("ai", fullText, time);
+    } catch (err) { lastBubble.innerHTML = "🚫 通信エラー: " + err; }
   }
 
   function appendMessage(role, text, time, scroll = true) {
@@ -192,16 +110,10 @@
     const div = document.createElement("div"); div.className = "message";
     const bubble = document.createElement("div");
     bubble.className = role === "user" ? "userBubble" : "aiBubble";
-    bubble.innerHTML = (text === "__thinking__") ? `<i>🤖 考え中...</i>` : marked.parse(text);
+    bubble.innerHTML = marked.parse(text);
     const timestamp = document.createElement("div"); timestamp.className = "timestamp"; timestamp.textContent = time;
     div.appendChild(bubble); div.appendChild(timestamp); chat.appendChild(div);
     if (scroll) chat.scrollTop = chat.scrollHeight;
-  }
-
-  function updateLastAIMessage(text) {
-    const chat = document.getElementById("chat");
-    const bubbles = chat.getElementsByClassName("aiBubble");
-    bubbles[bubbles.length - 1].innerHTML = marked.parse(text);
   }
 
   function saveHistory(role, text, time) {
@@ -209,6 +121,7 @@
     history.push({ role, text, time });
     localStorage.setItem("chatHistory", JSON.stringify(history));
   }
+
   function clearHistory() { localStorage.removeItem("chatHistory"); document.getElementById("chat").innerHTML = ""; }
 
   function sendTranslation(lang) {
@@ -234,7 +147,8 @@
       schedule: `以下の内容を使って日程調整メールの文案を作成してください。\n\n${text}`,
       call: `以下の電話内容を簡潔に要約してください。\n\n${text}`,
       problems: `以下の文章の問題点・懸念事項を抽出してください。\n\n${text}`,
-      table: `以下の内容を整理して簡単な表や計算結果を作成してください。\n\n${text}`
+      table: `以下の内容を整理して簡単な表や計算結果を作成してください。\n\n${text}`,
+      tableFormatter: `以下の内容を整理し、わかりやすい表形式で出力してください。可能であればMarkdown形式の表にしてください。\n\n${text}`
     };
     sendMessage(prompts[type]);
   }
