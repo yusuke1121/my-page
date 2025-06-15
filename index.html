@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My AI SaaS Chat (業務翻訳強化版)</title>
+  <title>My AI Business Assistant (完全テンプレート)</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; }
     #container { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -21,7 +21,7 @@
 <body>
 
 <div id="container">
-  <h1>My AI SaaS Chat 💬</h1>
+  <h1>My AI Business Assistant 💼</h1>
 
   <div id="chat"></div>
 
@@ -33,8 +33,8 @@
   <div>
     <button onclick="sendTranslation('ja')">🇯🇵 日本語翻訳</button>
     <button onclick="sendTranslation('en')">🇺🇸 英語翻訳</button>
-    <button onclick="sendEmail('en')">📧 英文メール作成</button>
-    <button onclick="sendEmail('ja')">📧 和文メール作成</button>
+    <button onclick="sendReplyEmail('en')">📧 英文返信作成</button>
+    <button onclick="sendReplyEmail('ja')">📧 和文返信作成</button>
   </div>
 </div>
 
@@ -143,16 +143,16 @@
     sendMessage(prompt);
   }
 
-  // メール作成機能
-  function sendEmail(lang) {
+  // ビジネスメールの返信作成機能
+  function sendReplyEmail(lang) {
     const input = document.getElementById("userInput");
     const text = input.value.trim();
     if (!text) return;
     let prompt = "";
     if (lang === "ja") {
-      prompt = `以下を元に日本語のビジネスメールの文章を作成してください。\n\n${text}`;
+      prompt = `以下のメールに対して丁寧なビジネス返信メールを日本語で作成してください。\n\n${text}`;
     } else {
-      prompt = `Please draft a polite business email in English based on the following content.\n\n${text}`;
+      prompt = `Please draft a polite business email reply in English based on the following incoming email:\n\n${text}`;
     }
     sendMessage(prompt);
   }
