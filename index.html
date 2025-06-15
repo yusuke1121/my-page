@@ -66,7 +66,6 @@
     <div id="templateList"></div>
   </div>
 </div>
-
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
   let isEmailReply = false;
@@ -99,10 +98,7 @@
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: message }]
-        })
+        body: JSON.stringify({ message })
       });
 
       const reader = response.body.getReader();
@@ -138,8 +134,6 @@
       lastBubble.innerHTML = "🚫 通信エラー: " + err;
     }
   }
-
-  // （残りのテンプレ保存・履歴・EML生成部分は以前通り完全動作）
 
   function createDownloadEML(content, time) {
     const chat = document.getElementById("chat");
@@ -194,7 +188,6 @@ ${content}`;
     localStorage.removeItem("templates");
     loadTemplates();
   }
-
   function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
@@ -223,16 +216,17 @@ ${content}`;
   }
 
   function sendTranslation(lang) {
-    const text = document.getElementById("userInput").value.trim();
+    const text = document.getElementById("userInput").value.trim(); 
     if (!text) return;
-    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` : `Please translate into English:\n\n${text}`;
+    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` 
+                                    : `Please translate into English:\n\n${text}`;
     sendMessage(prompt);
   }
 
   function sendReplyEmail(lang) {
-    const text = document.getElementById("userInput").value.trim();
+    const text = document.getElementById("userInput").value.trim(); 
     if (!text) return;
-    const prompt = (lang === "ja")
+    const prompt = (lang === "ja") 
       ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
       : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
     isEmailReply = true;
