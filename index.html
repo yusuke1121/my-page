@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My Page with History</title>
+  <title>My Page 安定版</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<h1>My Page with History</h1>
+<h1>My Page 安定版</h1>
 
 <div id="chat"></div>
 
@@ -22,7 +22,8 @@
 <button onclick="clearHistory()">履歴を削除</button>
 
 <script>
-  const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
+  // ※ ここにご自身のCloudflare Workersの新URLを設定してください
+  const apiEndpoint = "https://YOUR-WORKERS-SUBDOMAIN.workers.dev/";
 
   // ページ読み込み時に履歴復元
   window.onload = () => {
@@ -43,22 +44,18 @@
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: message }]
-        })
+        body: JSON.stringify({ message })
       });
 
       if (!response.ok) {
-        appendMessage("ai", "エラーが発生しました: " + response.status);
-        saveHistory("ai", "エラーが発生しました: " + response.status);
+        appendMessage("ai", "エラー: " + response.status);
+        saveHistory("ai", "エラー: " + response.status);
         return;
       }
 
       const data = await response.json();
-      const aiReply = data.choices[0].message.content;
-      appendMessage("ai", aiReply);
-      saveHistory("ai", aiReply);
+      appendMessage("ai", data.reply);
+      saveHistory("ai", data.reply);
     } catch (error) {
       appendMessage("ai", "通信エラー: " + error);
       saveHistory("ai", "通信エラー: " + error);
