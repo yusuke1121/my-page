@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My AI SaaS Chat (完全進化版)</title>
+  <title>My AI SaaS Chat (業務翻訳強化版)</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; }
     #container { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -13,7 +13,7 @@
     .aiBubble { background-color: #d9ead3; align-self: flex-start; }
     .timestamp { font-size: 0.75em; color: #888; margin-top: 3px; }
     textarea { width: 100%; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none; }
-    button { margin-top: 10px; font-size: 16px; padding: 10px 20px; border-radius: 5px; border: none; background-color: #0078d4; color: white; }
+    button { margin: 5px 5px 5px 0; font-size: 16px; padding: 10px 15px; border-radius: 5px; border: none; background-color: #0078d4; color: white; }
     button:disabled { background-color: #ccc; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -26,8 +26,16 @@
   <div id="chat"></div>
 
   <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
-  <button id="sendBtn" onclick="sendMessage()">送信 🚀</button>
-  <button onclick="clearHistory()">履歴を削除 🗑️</button>
+  <div>
+    <button onclick="sendMessage()">送信 🚀</button>
+    <button onclick="clearHistory()">履歴削除 🗑️</button>
+  </div>
+  <div>
+    <button onclick="sendTranslation('ja')">🇯🇵 日本語翻訳</button>
+    <button onclick="sendTranslation('en')">🇺🇸 英語翻訳</button>
+    <button onclick="sendEmail('en')">📧 英文メール作成</button>
+    <button onclick="sendEmail('ja')">📧 和文メール作成</button>
+  </div>
 </div>
 
 <script>
@@ -45,17 +53,17 @@
     }
   });
 
-  async function sendMessage() {
+  async function sendMessage(prompt = null) {
     const input = document.getElementById("userInput");
-    const message = input.value.trim();
+    const message = prompt || input.value.trim();
     if (!message) return;
 
     const time = new Date().toLocaleString();
     appendMessage("user", message, time);
     saveHistory("user", message, time);
-    input.value = "";
+    if (!prompt) input.value = "";
 
-    appendMessage("ai", "__thinking__", time); // loading
+    appendMessage("ai", "__thinking__", time); 
 
     try {
       const response = await fetch(apiEndpoint, {
@@ -119,6 +127,34 @@
   function clearHistory() {
     localStorage.removeItem("chatHistory");
     document.getElementById("chat").innerHTML = "";
+  }
+
+  // 翻訳機能
+  function sendTranslation(lang) {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
+    let prompt = "";
+    if (lang === "ja") {
+      prompt = `以下を自然な日本語に翻訳してください。\n\n${text}`;
+    } else {
+      prompt = `Please translate the following text into natural English.\n\n${text}`;
+    }
+    sendMessage(prompt);
+  }
+
+  // メール作成機能
+  function sendEmail(lang) {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
+    let prompt = "";
+    if (lang === "ja") {
+      prompt = `以下を元に日本語のビジネスメールの文章を作成してください。\n\n${text}`;
+    } else {
+      prompt = `Please draft a polite business email in English based on the following content.\n\n${text}`;
+    }
+    sendMessage(prompt);
   }
 </script>
 
