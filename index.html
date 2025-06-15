@@ -2,34 +2,107 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My AI Business Assistant (完全テンプレート)</title>
+  <title>My AI Business Assistant (SaaSレスポンシブ版)</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; }
-    #container { max-width: 800px; margin: 0 auto; padding: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 600px; overflow-y: auto; background-color: #fff; border-radius: 10px; }
-    .message { margin: 10px; display: flex; flex-direction: column; }
-    .userBubble, .aiBubble { max-width: 70%; padding: 10px; border-radius: 10px; line-height: 1.4; }
-    .userBubble { background-color: #d9e1f2; align-self: flex-end; }
-    .aiBubble { background-color: #d9ead3; align-self: flex-start; }
-    .timestamp { font-size: 0.75em; color: #888; margin-top: 3px; }
-    textarea { width: 100%; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none; }
-    button { margin: 5px 5px 5px 0; font-size: 16px; padding: 10px 15px; border-radius: 5px; border: none; background-color: #0078d4; color: white; }
-    button:disabled { background-color: #ccc; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background-color: #0078d4;
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.5em;
+    }
+    #container {
+      flex: 1;
+      max-width: 95%;
+      margin: 0 auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 70vh;
+      overflow-y: auto;
+      background-color: #fff;
+      border-radius: 10px;
+    }
+    .message {
+      margin: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .userBubble, .aiBubble {
+      max-width: 90%;
+      padding: 10px;
+      border-radius: 10px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .userBubble {
+      background-color: #d9e1f2;
+      align-self: flex-end;
+    }
+    .aiBubble {
+      background-color: #d9ead3;
+      align-self: flex-start;
+    }
+    .timestamp {
+      font-size: 0.75em;
+      color: #888;
+      margin-top: 3px;
+    }
+    textarea {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      resize: none;
+      box-sizing: border-box;
+    }
+    button {
+      margin: 5px 5px 5px 0;
+      font-size: 16px;
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: none;
+      background-color: #0078d4;
+      color: white;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    @media (max-width: 600px) {
+      #chat {
+        height: 60vh;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
-<div id="container">
-  <h1>My AI Business Assistant 💼</h1>
+<header>
+  My AI Business Assistant 💼 SaaS
+</header>
 
+<div id="container">
   <div id="chat"></div>
 
   <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
+
   <div>
     <button onclick="sendMessage()">送信 🚀</button>
     <button onclick="clearHistory()">履歴削除 🗑️</button>
   </div>
+
   <div>
     <button onclick="sendTranslation('ja')">🇯🇵 日本語翻訳</button>
     <button onclick="sendTranslation('en')">🇺🇸 英語翻訳</button>
@@ -129,7 +202,6 @@
     document.getElementById("chat").innerHTML = "";
   }
 
-  // 翻訳機能
   function sendTranslation(lang) {
     const input = document.getElementById("userInput");
     const text = input.value.trim();
@@ -143,7 +215,6 @@
     sendMessage(prompt);
   }
 
-  // ビジネスメールの返信作成機能
   function sendReplyEmail(lang) {
     const input = document.getElementById("userInput");
     const text = input.value.trim();
