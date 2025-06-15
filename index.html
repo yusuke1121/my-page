@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - SaaS完全製品版</title>
+  <title>AI SaaS Business Assistant - 短期メモリ版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -25,7 +25,7 @@
 </head>
 
 <body>
-<header>AI SaaS Business Assistant 💼 完全SaaS製品版</header>
+<header>AI SaaS Business Assistant 💼 短期メモリ版</header>
 
 <div id="container">
   <div id="chat"></div>
@@ -84,6 +84,7 @@
     const input = document.getElementById("userInput");
     const message = prompt || input.value.trim();
     if (!message) return;
+
     const time = new Date().toLocaleString();
     appendMessage("user", message, time);
     saveHistory("user", message, time);
@@ -94,11 +95,22 @@
     const bubbles = chat.getElementsByClassName("aiBubble");
     const lastBubble = bubbles[bubbles.length - 1];
 
+    // 🔥 短期メモリ部分ここから
+    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+    const shortMemory = history.slice(-6); // 直近3往復 (user+ai 合わせて6件)
+
+    const messages = [{ role: "system", content: "あなたは親切なアシスタントです。" }];
+    shortMemory.forEach(h => {
+      messages.push({ role: h.role === "user" ? "user" : "assistant", content: h.text });
+    });
+    messages.push({ role: "user", content: message });
+    // 🔥 短期メモリ部分ここまで
+
     try {
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ messages: messages, model: "gpt-4o", stream: true })
       });
 
       const reader = response.body.getReader();
@@ -133,29 +145,6 @@
     } catch (err) {
       lastBubble.innerHTML = "🚫 通信エラー: " + err;
     }
-  }
-
-  function createDownloadEML(content, time) {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "download";
-    const button = document.createElement("button");
-    button.innerText = "📥 Download .eml";
-    button.onclick = () => {
-      const eml = `Subject: AI Generated Email
-Date: ${new Date().toUTCString()}
-Content-Type: text/plain; charset=UTF-8
-X-Unsent: 1
-
-${content}`;
-      const blob = new Blob([eml], { type: "message/rfc822" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `email_${time.replace(/[:/ ]/g,"_")}.eml`;
-      link.click();
-    };
-    div.appendChild(button);
-    chat.appendChild(div);
   }
 
   function insertTemplate(templateText) {
