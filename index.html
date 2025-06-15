@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全ドラフト対応版</title>
+  <title>AI SaaS Business Assistant - 最終完全統合版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -26,7 +26,7 @@
 
 <body>
 
-<header>AI SaaS Business Assistant </header>
+<header>AI SaaS Business Assistant 💼 最終完全統合版</header>
 
 <div id="container">
 
@@ -131,9 +131,7 @@
     const button = document.createElement("button");
     button.innerText = "📥 Download .eml";
     button.onclick = () => {
-      const eml = `From: your.name@example.com
-To: recipient@example.com
-Subject: AI Generated Email
+      const eml = `Subject: AI Generated Email
 Date: ${new Date().toUTCString()}
 Content-Type: text/plain; charset=UTF-8
 X-Unsent: 1
