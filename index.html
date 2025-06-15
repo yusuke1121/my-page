@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全版</title>
+  <title>AI SaaS Business Assistant - 完全テンプレート最新版</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -94,6 +94,25 @@
       visibility: visible;
       opacity: 1;
     }
+
+    /* === ChatGPT風テーブル整形ここから追加 === */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+    thead {
+      background-color: #f0f0f0;
+    }
+    /* === 追加ここまで === */
+
     @media (max-width: 600px) {
       #chat { height: 60vh; }
     }
@@ -209,7 +228,7 @@
     const text = document.getElementById("userInput").value.trim(); if (!text) return;
     const prompts = {
       summary: `以下の文章を要約してください。箇条書きでも構いません。\n\n${text}`,
-      action: `以下の内容から次のアクション項目を抽出してください。箇条書きで。 \n\n${text}`,
+      action: `以下の内容から次のアクション項目を抽出してください。箇条書きで。\n\n${text}`,
       points: `以下の文章の要点を箇条書きで整理してください。\n\n${text}`,
       polite: `以下の文章をより丁寧なビジネス表現にリライトしてください。\n\n${text}`,
       schedule: `以下の内容を使って日程調整メールの文案を作成してください。\n\n${text}`,
