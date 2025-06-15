@@ -2,132 +2,253 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My ChatGPT MultiTool 完全統合版</title>
+  <title>AI SaaS Business Assistant - SaaS完全製品版</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
-    .message { margin: 5px 0; }
-    .user { color: blue; }
-    .ai { color: green; }
-    .toolbar button { margin: 5px; padding: 5px 10px; }
-    .template { margin-top: 10px; }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
+    header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
+    #container { flex: 1; max-width: 95%; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 65vh; overflow-y: auto; background-color: #fff; border-radius: 10px; }
+    .message { margin: 10px; display: flex; flex-direction: column; }
+    .userBubble, .aiBubble { max-width: 90%; padding: 10px; border-radius: 10px; line-height: 1.4; word-break: break-word; }
+    .userBubble { background-color: #d9e1f2; align-self: flex-end; }
+    .aiBubble { background-color: #d9ead3; align-self: flex-start; }
+    .timestamp { font-size: 0.75em; color: #888; margin-top: 3px; }
+    textarea { width: 100%; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none; box-sizing: border-box; }
+    button { margin: 5px 5px 5px 0; font-size: 20px; padding: 10px 15px; border-radius: 5px; border: none; background-color: #0078d4; color: white; cursor: pointer; }
+    button:disabled { background-color: #ccc; }
+    .tooltip { position: relative; display: inline-block; }
+    .tooltip .tooltiptext { visibility: hidden; width: max-content; background-color: black; color: #fff; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
+    .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    .download { margin-top: 5px; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
+<header>AI SaaS Business Assistant 💼 完全SaaS製品版</header>
 
-<h1>My ChatGPT MultiTool 完全統合版</h1>
+<div id="container">
+  <div id="chat"></div>
+  <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
 
-<div id="chat"></div>
+  <div>
+    <button onclick="sendMessage()">🚀</button>
+    <button onclick="clearHistory()">🗑️</button>
+  </div>
+  <div>
+    <!-- 通常プロンプトボタン -->
+    <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
+    <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文メール</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文メール</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('polite')">📌</button><span class="tooltiptext">丁寧表現</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('schedule')">📅</button><span class="tooltiptext">日程調整</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('call')">📞</button><span class="tooltiptext">電話メモ</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('problems')">🔎</button><span class="tooltiptext">問題点指摘</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
 
-<div class="toolbar">
-  <button onclick="insertTemplate('おはようございます')">🌅</button>
-  <button onclick="insertTemplate('ありがとうございます')">🙏</button>
-  <button onclick="insertTemplate('今日の予定は？')">📅</button>
-  <button onclick="insertTemplate('英訳して')">🇺🇸</button>
-  <button onclick="insertTemplate('要約して')">📝</button>
-  <button onclick="insertTemplate('コードレビューして')">💻</button>
-  <button onclick="insertTemplate('プラン提案して')">🎯</button>
+    <!-- 固定テンプレ挿入 -->
+    <br><br>
+    <span class="tooltip"><button onclick="insertTemplate('候補日: ○月○日（○曜日）\\n時間帯: 午前 / 午後')">📅</button><span class="tooltiptext">日程調整テンプレ</span></span>
+    <span class="tooltip"><button onclick="insertTemplate('拝啓 ○○様\\nいつもお世話になっております。\\n\\n以下の件につきましてご連絡申し上げます。\\n\\n')">📧</button><span class="tooltiptext">メール定型文</span></span>
+    <span class="tooltip"><button onclick="insertTemplate('会議名: \\n日時: \\n出席者: \\n議事内容:\\n- ')">📝</button><span class="tooltiptext">議事録テンプレ</span></span>
+
+    <!-- テンプレート登録エリア -->
+    <br><br>
+    <input type="text" id="templateName" placeholder="テンプレ名" style="width: 20%;">
+    <input type="text" id="templateText" placeholder="テンプレ内容" style="width: 50%;">
+    <button onclick="saveTemplate()">＋保存</button>
+    <button onclick="clearTemplates()">🗑 全削除</button>
+    <div id="templateList"></div>
+  </div>
 </div>
-
-<input type="text" id="userInput" placeholder="メッセージを入力" style="width: 80%;">
-<button onclick="sendMessage()">送信</button>
-
-<div class="template">
-  <input type="text" id="templateName" placeholder="テンプレ名">
-  <input type="text" id="templateContent" placeholder="テンプレ内容">
-  <button onclick="saveTemplate()">＋保存</button>
-  <button onclick="deleteAllTemplates()">全削除</button>
-</div>
-
-<div id="templateList"></div>
-
 <script>
-// API通信部分
-const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
-const model = "gpt-4o";
+  const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
+  let isEmailReply = false;
 
-async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const message = input.value;
-  if (!message) return;
+  document.getElementById("userInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
 
-  appendMessage("user", message);
-  input.value = "";
+  window.onload = () => {
+    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+    history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
+    loadTemplates();
+  };
 
-  try {
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: model,
-        messages: [{ role: "user", content: message }]
-      })
-    });
+  async function sendMessage(prompt = null) {
+    const input = document.getElementById("userInput");
+    const message = prompt || input.value.trim();
+    if (!message) return;
+    const time = new Date().toLocaleString();
+    appendMessage("user", message, time);
+    saveHistory("user", message, time);
+    if (!prompt) input.value = "";
+    appendMessage("ai", "", time);
 
-    if (!response.ok) {
-      appendMessage("ai", "エラー発生: " + response.status);
-      return;
+    const chat = document.getElementById("chat");
+    const bubbles = chat.getElementsByClassName("aiBubble");
+    const lastBubble = bubbles[bubbles.length - 1];
+
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.substring(6).trim();
+            if (data === "[DONE]") break;
+            try {
+              const json = JSON.parse(data);
+              const content = json.choices[0].delta?.content;
+              if (content) {
+                fullText += content;
+                lastBubble.innerHTML = marked.parse(fullText);
+              }
+            } catch (err) {}
+          }
+        }
+      }
+      saveHistory("ai", fullText, time);
+      if (isEmailReply) createDownloadEML(fullText, time);
+      isEmailReply = false;
+
+    } catch (err) {
+      lastBubble.innerHTML = "🚫 通信エラー: " + err;
     }
-
-    const data = await response.json();
-    const aiReply = data.choices[0].message.content;
-    appendMessage("ai", aiReply.replace(/\n/g, "<br>"));
-  } catch (error) {
-    appendMessage("ai", "通信エラー: " + error);
-  }
-}
-
-function appendMessage(role, text) {
-  const chat = document.getElementById("chat");
-  const div = document.createElement("div");
-  div.className = "message " + role;
-  div.innerHTML = (role === "user" ? "あなた: " : "AI: ") + text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function insertTemplate(text) {
-  document.getElementById("userInput").value = text;
-}
-
-// テンプレ保存系
-function saveTemplate() {
-  const name = document.getElementById("templateName").value;
-  const content = document.getElementById("templateContent").value;
-
-  if (!name || !content) {
-    alert("テンプレ名と内容を入力してください");
-    return;
   }
 
-  const templates = JSON.parse(localStorage.getItem("templates") || "{}");
-  templates[name] = content;
-  localStorage.setItem("templates", JSON.stringify(templates));
+  function createDownloadEML(content, time) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = "download";
+    const button = document.createElement("button");
+    button.innerText = "📥 Download .eml";
+    button.onclick = () => {
+      const eml = `Subject: AI Generated Email
+Date: ${new Date().toUTCString()}
+Content-Type: text/plain; charset=UTF-8
+X-Unsent: 1
 
-  renderTemplates();
-}
-
-function renderTemplates() {
-  const templates = JSON.parse(localStorage.getItem("templates") || "{}");
-  const list = document.getElementById("templateList");
-  list.innerHTML = "";
-
-  for (const name in templates) {
-    const btn = document.createElement("button");
-    btn.textContent = name;
-    btn.onclick = () => insertTemplate(templates[name]);
-    list.appendChild(btn);
+${content}`;
+      const blob = new Blob([eml], { type: "message/rfc822" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `email_${time.replace(/[:/ ]/g,"_")}.eml`;
+      link.click();
+    };
+    div.appendChild(button);
+    chat.appendChild(div);
   }
-}
 
-function deleteAllTemplates() {
-  if (confirm("全テンプレを削除しますか？")) {
+  function insertTemplate(templateText) {
+    document.getElementById("userInput").value = templateText.replace(/\\n/g, "\n");
+  }
+
+  function saveTemplate() {
+    const name = document.getElementById("templateName").value.trim();
+    const text = document.getElementById("templateText").value.trim();
+    if (!name || !text) return alert("テンプレ名と内容を入力してください");
+    let templates = JSON.parse(localStorage.getItem("templates") || "{}");
+    templates[name] = text;
+    localStorage.setItem("templates", JSON.stringify(templates));
+    loadTemplates();
+  }
+
+  function loadTemplates() {
+    const list = document.getElementById("templateList");
+    list.innerHTML = "";
+    const templates = JSON.parse(localStorage.getItem("templates") || "{}");
+    for (const name in templates) {
+      const btn = document.createElement("button");
+      btn.innerText = name;
+      btn.onclick = () => insertTemplate(templates[name].replace(/\n/g, "\\n"));
+      list.appendChild(btn);
+    }
+  }
+
+  function clearTemplates() {
     localStorage.removeItem("templates");
-    renderTemplates();
+    loadTemplates();
   }
-}
+  function appendMessage(role, text, time, scroll = true) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = "message";
+    const bubble = document.createElement("div");
+    bubble.className = role === "user" ? "userBubble" : "aiBubble";
+    bubble.innerHTML = marked.parse(text);
+    const timestamp = document.createElement("div");
+    timestamp.className = "timestamp";
+    timestamp.textContent = time;
+    div.appendChild(bubble);
+    div.appendChild(timestamp);
+    chat.appendChild(div);
+    if (scroll) chat.scrollTop = chat.scrollHeight;
+  }
 
-window.onload = renderTemplates;
+  function saveHistory(role, text, time) {
+    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+    history.push({ role, text, time });
+    localStorage.setItem("chatHistory", JSON.stringify(history));
+  }
+
+  function clearHistory() {
+    localStorage.removeItem("chatHistory");
+    document.getElementById("chat").innerHTML = "";
+  }
+
+  function sendTranslation(lang) {
+    const text = document.getElementById("userInput").value.trim(); 
+    if (!text) return;
+    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` 
+                                    : `Please translate into English:\n\n${text}`;
+    sendMessage(prompt);
+  }
+
+  function sendReplyEmail(lang) {
+    const text = document.getElementById("userInput").value.trim(); 
+    if (!text) return;
+    const prompt = (lang === "ja") 
+      ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
+      : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
+    isEmailReply = true;
+    sendMessage(prompt);
+  }
+
+  function sendPrompt(type) {
+    const text = document.getElementById("userInput").value.trim();
+    if (!text) return;
+    const prompts = {
+      summary: `以下の文章を要約してください。\n\n${text}`,
+      action: `以下の内容から次のアクション項目を抽出してください。\n\n${text}`,
+      points: `以下の文章の要点を箇条書きで整理してください。\n\n${text}`,
+      polite: `以下の文章をより丁寧なビジネス表現にリライトしてください。\n\n${text}`,
+      schedule: `以下の内容を使って日程調整メールの文案を作成してください。\n\n${text}`,
+      call: `以下の電話内容を簡潔に要約してください。\n\n${text}`,
+      problems: `以下の文章の問題点・懸念事項を抽出してください。\n\n${text}`,
+      table: `以下の内容を整理して簡単な表や計算結果を作成してください。\n\n${text}`,
+      tableFormatter: `以下の内容を整理し、わかりやすい表形式で出力してください。可能であればMarkdown形式の表にしてください。\n\n${text}`
+    };
+    sendMessage(prompts[type]);
+  }
 </script>
 
 </body>
