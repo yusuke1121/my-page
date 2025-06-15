@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - テンプレ登録版</title>
+  <title>AI SaaS Business Assistant - 完全統合版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -26,7 +26,7 @@
 
 <body>
 
-<header>AI SaaS Business Assistant 💼 テンプレ登録版</header>
+<header>AI SaaS Business Assistant 💼 完全統合版</header>
 
 <div id="container">
 
@@ -40,11 +40,11 @@
   </div>
 
   <div>
-    <!-- ここにプロンプトボタン群とテンプレ挿入ボタン群が入ります -->
+    <!-- 通常プロンプトボタン群 -->
     <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
     <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文メール(.emlドラフト)</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文メール(.emlドラフト)</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文メール</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文メール</span></span>
     <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約</span></span>
     <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
     <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
@@ -55,202 +55,156 @@
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
     <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
 
-    <!-- テンプレ登録フォーム -->
-    <div style="margin-top: 20px;">
-      <h3>新規テンプレ登録</h3>
-      <input type="text" id="templateTitle" placeholder="テンプレート名" style="width: 30%; padding: 5px;">
-      <input type="text" id="templateContent" placeholder="テンプレート内容" style="width: 50%; padding: 5px;">
-      <button onclick="addTemplate()">➕ 登録</button>
-    </div>
-
-    <!-- 登録済みテンプレート出力エリア -->
-    <div style="margin-top: 10px;">
-      <h3>登録済みテンプレ</h3>
-      <div id="templateButtons"></div>
-    </div>
+    <!-- テンプレート挿入ボタン -->
+    <br><br>
+    <span class="tooltip"><button onclick="insertTemplate('候補日: ○月○日（○曜日）\\n時間帯: 午前 / 午後')">📅</button><span class="tooltiptext">日程調整テンプレ</span></span>
+    <span class="tooltip"><button onclick="insertTemplate('拝啓 ○○様\\nいつもお世話になっております。\\n\\n以下の件につきましてご連絡申し上げます。\\n\\n')">📧</button><span class="tooltiptext">メール定型文</span></span>
+    <span class="tooltip"><button onclick="insertTemplate('会議名: \\n日時: \\n出席者: \\n議事内容:\\n- ')">📝</button><span class="tooltiptext">議事録テンプレ</span></span>
   </div>
 </div>
+
 <script>
-  const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
-  let isEmailReply = false;
+const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
+let isEmailReply = false;
 
-  document.getElementById("userInput").addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
+document.getElementById("userInput").addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
 
-  window.onload = () => {
-    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-    history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
-    loadTemplates();
-  };
+window.onload = () => {
+  const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+  history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
+};
 
-  async function sendMessage(prompt = null) {
-    const input = document.getElementById("userInput");
-    const message = prompt || input.value.trim();
-    if (!message) return;
-    const time = new Date().toLocaleString();
-    appendMessage("user", message, time);
-    saveHistory("user", message, time);
-    if (!prompt) input.value = "";
-    appendMessage("ai", "", time);
+async function sendMessage(prompt = null) {
+  const input = document.getElementById("userInput");
+  const message = prompt || input.value.trim();
+  if (!message) return;
+  const time = new Date().toLocaleString();
+  appendMessage("user", message, time);
+  saveHistory("user", message, time);
+  if (!prompt) input.value = "";
+  appendMessage("ai", "", time);
 
-    const chat = document.getElementById("chat");
-    const bubbles = chat.getElementsByClassName("aiBubble");
-    const lastBubble = bubbles[bubbles.length - 1];
+  const chat = document.getElementById("chat");
+  const bubbles = chat.getElementsByClassName("aiBubble");
+  const lastBubble = bubbles[bubbles.length - 1];
 
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
+  try {
+    const response = await fetch(apiEndpoint, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message })
+    });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let fullText = "";
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.substring(6).trim();
-            if (data === "[DONE]") break;
-            try {
-              const json = JSON.parse(data);
-              const content = json.choices[0].delta?.content;
-              if (content) {
-                fullText += content;
-                lastBubble.innerHTML = marked.parse(fullText);
-              }
-            } catch (err) {}
-          }
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split("\n");
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.substring(6).trim();
+          if (data === "[DONE]") break;
+          try {
+            const json = JSON.parse(data);
+            const content = json.choices[0].delta?.content;
+            if (content) { fullText += content; lastBubble.innerHTML = marked.parse(fullText); }
+          } catch (err) {}
         }
       }
-      saveHistory("ai", fullText, time);
-      if (isEmailReply) createDownloadEML(fullText, time);
-      isEmailReply = false;
-
-    } catch (err) {
-      lastBubble.innerHTML = "🚫 通信エラー: " + err;
     }
+    saveHistory("ai", fullText, time);
+    if (isEmailReply) createDownloadEML(fullText, time);
+    isEmailReply = false;
+  } catch (err) {
+    lastBubble.innerHTML = "🚫 通信エラー: " + err;
   }
+}
 
-  function createDownloadEML(content, time) {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "download";
-    const button = document.createElement("button");
-    button.innerText = "📥 Download .eml";
-    button.onclick = () => {
-      const eml = `Subject: AI Generated Email
-Date: ${new Date().toUTCString()}
-Content-Type: text/plain; charset=UTF-8
-X-Unsent: 1
+function createDownloadEML(content, time) {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "download";
+  const button = document.createElement("button");
+  button.innerText = "📥 Download .eml";
+  button.onclick = () => {
+    const eml = `Subject: AI Generated Email\nDate: ${new Date().toUTCString()}\nContent-Type: text/plain; charset=UTF-8\nX-Unsent: 1\n\n${content}`;
+    const blob = new Blob([eml], { type: "message/rfc822" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `email_${time.replace(/[:/ ]/g,"_")}.eml`;
+    link.click();
+  };
+  div.appendChild(button);
+  chat.appendChild(div);
+}
 
-${content}`;
-      const blob = new Blob([eml], { type: "message/rfc822" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `email_${time.replace(/[:/ ]/g,"_")}.eml`;
-      link.click();
-    };
-    div.appendChild(button);
-    chat.appendChild(div);
-  }
+function appendMessage(role, text, time, scroll = true) {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "message";
+  const bubble = document.createElement("div");
+  bubble.className = role === "user" ? "userBubble" : "aiBubble";
+  bubble.innerHTML = marked.parse(text);
+  const timestamp = document.createElement("div");
+  timestamp.className = "timestamp";
+  timestamp.textContent = time;
+  div.appendChild(bubble);
+  div.appendChild(timestamp);
+  chat.appendChild(div);
+  if (scroll) chat.scrollTop = chat.scrollHeight;
+}
 
-  function insertTemplate(templateText) {
-    document.getElementById("userInput").value = templateText;
-  }
+function saveHistory(role, text, time) {
+  const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+  history.push({ role, text, time });
+  localStorage.setItem("chatHistory", JSON.stringify(history));
+}
 
-  function addTemplate() {
-    const title = document.getElementById("templateTitle").value.trim();
-    const content = document.getElementById("templateContent").value.trim();
-    if (!title || !content) return;
-    const templates = JSON.parse(localStorage.getItem("templates") || "[]");
-    templates.push({ title, content });
-    localStorage.setItem("templates", JSON.stringify(templates));
-    document.getElementById("templateTitle").value = "";
-    document.getElementById("templateContent").value = "";
-    loadTemplates();
-  }
+function clearHistory() {
+  localStorage.removeItem("chatHistory");
+  document.getElementById("chat").innerHTML = "";
+}
 
-  function loadTemplates() {
-    const templates = JSON.parse(localStorage.getItem("templates") || "[]");
-    const area = document.getElementById("templateButtons");
-    area.innerHTML = "";
-    templates.forEach(({ title, content }) => {
-      const btn = document.createElement("button");
-      btn.innerText = title;
-      btn.onclick = () => insertTemplate(content);
-      area.appendChild(btn);
-    });
-  }
-</script>
-  function appendMessage(role, text, time, scroll = true) {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "message";
-    const bubble = document.createElement("div");
-    bubble.className = role === "user" ? "userBubble" : "aiBubble";
-    bubble.innerHTML = marked.parse(text);
-    const timestamp = document.createElement("div");
-    timestamp.className = "timestamp";
-    timestamp.textContent = time;
-    div.appendChild(bubble);
-    div.appendChild(timestamp);
-    chat.appendChild(div);
-    if (scroll) chat.scrollTop = chat.scrollHeight;
-  }
+function sendTranslation(lang) {
+  const text = document.getElementById("userInput").value.trim(); 
+  if (!text) return;
+  const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` : `Please translate into English:\n\n${text}`;
+  sendMessage(prompt);
+}
 
-  function saveHistory(role, text, time) {
-    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-    history.push({ role, text, time });
-    localStorage.setItem("chatHistory", JSON.stringify(history));
-  }
+function sendReplyEmail(lang) {
+  const text = document.getElementById("userInput").value.trim(); 
+  if (!text) return;
+  const prompt = (lang === "ja") ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}` 
+  : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
+  isEmailReply = true;
+  sendMessage(prompt);
+}
 
-  function clearHistory() {
-    localStorage.removeItem("chatHistory");
-    document.getElementById("chat").innerHTML = "";
-  }
+function sendPrompt(type) {
+  const text = document.getElementById("userInput").value.trim();
+  if (!text) return;
+  const prompts = {
+    summary: `以下の文章を要約してください。\n\n${text}`,
+    action: `以下の内容から次のアクション項目を抽出してください。\n\n${text}`,
+    points: `以下の要点を箇条書きで整理してください。\n\n${text}`,
+    polite: `以下の文章をより丁寧な表現にリライトしてください。\n\n${text}`,
+    schedule: `以下内容を使って日程調整メールを作成してください。\n\n${text}`,
+    call: `以下の電話内容を要約してください。\n\n${text}`,
+    problems: `以下の文章の懸念点を洗い出してください。\n\n${text}`,
+    table: `以下の内容から簡易表を作成してください。\n\n${text}`,
+    tableFormatter: `以下をMarkdown表形式に整理してください。\n\n${text}`
+  };
+  sendMessage(prompts[type]);
+}
 
-  function sendTranslation(lang) {
-    const text = document.getElementById("userInput").value.trim(); 
-    if (!text) return;
-    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` 
-                                    : `Please translate into English:\n\n${text}`;
-    sendMessage(prompt);
-  }
-
-  function sendReplyEmail(lang) {
-    const text = document.getElementById("userInput").value.trim(); 
-    if (!text) return;
-    const prompt = (lang === "ja") 
-      ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
-      : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
-    isEmailReply = true;
-    sendMessage(prompt);
-  }
-
-  function sendPrompt(type) {
-    const text = document.getElementById("userInput").value.trim();
-    if (!text) return;
-    const prompts = {
-      summary: `以下の文章を要約してください。箇条書きでも構いません。\n\n${text}`,
-      action: `以下の内容から次のアクション項目を抽出してください。箇条書きで。\n\n${text}`,
-      points: `以下の文章の要点を箇条書きで整理してください。\n\n${text}`,
-      polite: `以下の文章をより丁寧なビジネス表現にリライトしてください。\n\n${text}`,
-      schedule: `以下の内容を使って日程調整メールの文案を作成してください。\n\n${text}`,
-      call: `以下の電話内容を簡潔に要約してください。\n\n${text}`,
-      problems: `以下の文章の問題点・懸念事項を抽出してください。\n\n${text}`,
-      table: `以下の内容を整理して簡単な表や計算結果を作成してください。\n\n${text}`,
-      tableFormatter: `以下の内容を整理し、わかりやすい表形式で出力してください。可能であればMarkdown形式の表にしてください。\n\n${text}`
-    };
-    sendMessage(prompts[type]);
-  }
+function insertTemplate(templateText) {
+  document.getElementById("userInput").value = templateText.replace(/\\n/g, "\n");
+}
 </script>
 
 </body>
