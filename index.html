@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My AI Business Assistant (SaaSレスポンシブ版)</title>
+  <title>AI SaaS Business Assistant - 完全版</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -45,14 +45,8 @@
       line-height: 1.4;
       word-break: break-word;
     }
-    .userBubble {
-      background-color: #d9e1f2;
-      align-self: flex-end;
-    }
-    .aiBubble {
-      background-color: #d9ead3;
-      align-self: flex-start;
-    }
+    .userBubble { background-color: #d9e1f2; align-self: flex-end; }
+    .aiBubble { background-color: #d9ead3; align-self: flex-start; }
     .timestamp {
       font-size: 0.75em;
       color: #888;
@@ -69,126 +63,126 @@
     }
     button {
       margin: 5px 5px 5px 0;
-      font-size: 16px;
+      font-size: 20px;
       padding: 10px 15px;
       border-radius: 5px;
       border: none;
       background-color: #0078d4;
       color: white;
+      cursor: pointer;
     }
-    button:disabled {
-      background-color: #ccc;
+    button:disabled { background-color: #ccc; }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: max-content;
+      background-color: black;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; left: 50%;
+      transform: translateX(-50%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
     }
     @media (max-width: 600px) {
-      #chat {
-        height: 60vh;
-      }
+      #chat { height: 60vh; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
 
-<header>
-  My AI Business Assistant 💼 SaaS
-</header>
+<header>AI Business SaaS Assistant 💼</header>
 
 <div id="container">
+
   <div id="chat"></div>
 
   <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
 
   <div>
-    <button onclick="sendMessage()">送信 🚀</button>
-    <button onclick="clearHistory()">履歴削除 🗑️</button>
+    <button onclick="sendMessage()">🚀</button>
+    <button onclick="clearHistory()">🗑️</button>
   </div>
 
   <div>
-    <button onclick="sendTranslation('ja')">🇯🇵 日本語翻訳</button>
-    <button onclick="sendTranslation('en')">🇺🇸 英語翻訳</button>
-    <button onclick="sendReplyEmail('en')">📧 英文返信作成</button>
-    <button onclick="sendReplyEmail('ja')">📧 和文返信作成</button>
+
+    <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
+    <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
+
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信作成</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信作成</span></span>
+
+    <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約作成</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('polite')">📌</button><span class="tooltiptext">丁寧表現</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('schedule')">📅</button><span class="tooltiptext">日程調整文</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('call')">📞</button><span class="tooltiptext">電話メモ要約</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('problems')">🔎</button><span class="tooltiptext">問題点指摘</span></span>
+    <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
+
   </div>
+
 </div>
 
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
+
+  document.getElementById("userInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
 
   window.onload = () => {
     const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
     history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
   };
 
-  document.getElementById("userInput").addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-
   async function sendMessage(prompt = null) {
     const input = document.getElementById("userInput");
     const message = prompt || input.value.trim();
     if (!message) return;
-
     const time = new Date().toLocaleString();
     appendMessage("user", message, time);
     saveHistory("user", message, time);
     if (!prompt) input.value = "";
-
     appendMessage("ai", "__thinking__", time); 
-
     try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
-
-      if (!response.ok) {
-        updateLastAIMessage(`⚠️ エラー: ${response.status}`);
-        saveHistory("ai", `⚠️ エラー: ${response.status}`, time);
-        return;
-      }
-
+      const response = await fetch(apiEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) });
       const data = await response.json();
       updateLastAIMessage(data.reply);
       saveHistory("ai", data.reply, time);
     } catch (error) {
-      updateLastAIMessage(`🚫 通信エラー: ${error}`);
-      saveHistory("ai", `🚫 通信エラー: ${error}`, time);
+      updateLastAIMessage("🚫 通信エラー");
     }
   }
 
   function appendMessage(role, text, time, scroll = true) {
     const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "message";
-
+    const div = document.createElement("div"); div.className = "message";
     const bubble = document.createElement("div");
     bubble.className = role === "user" ? "userBubble" : "aiBubble";
-
-    if (text === "__thinking__") {
-      bubble.innerHTML = `<i>🤖 考え中...</i>`;
-    } else {
-      bubble.innerHTML = marked.parse(text);
-    }
-
-    const timestamp = document.createElement("div");
-    timestamp.className = "timestamp";
-    timestamp.textContent = time;
-
-    div.appendChild(bubble);
-    div.appendChild(timestamp);
-    chat.appendChild(div);
+    bubble.innerHTML = (text === "__thinking__") ? `<i>🤖 考え中...</i>` : marked.parse(text);
+    const timestamp = document.createElement("div"); timestamp.className = "timestamp"; timestamp.textContent = time;
+    div.appendChild(bubble); div.appendChild(timestamp); chat.appendChild(div);
     if (scroll) chat.scrollTop = chat.scrollHeight;
   }
 
   function updateLastAIMessage(text) {
     const chat = document.getElementById("chat");
-    const messages = chat.getElementsByClassName("aiBubble");
-    const lastBubble = messages[messages.length - 1];
-    lastBubble.innerHTML = marked.parse(text);
+    const bubbles = chat.getElementsByClassName("aiBubble");
+    bubbles[bubbles.length - 1].innerHTML = marked.parse(text);
   }
 
   function saveHistory(role, text, time) {
@@ -196,36 +190,34 @@
     history.push({ role, text, time });
     localStorage.setItem("chatHistory", JSON.stringify(history));
   }
-
-  function clearHistory() {
-    localStorage.removeItem("chatHistory");
-    document.getElementById("chat").innerHTML = "";
-  }
+  function clearHistory() { localStorage.removeItem("chatHistory"); document.getElementById("chat").innerHTML = ""; }
 
   function sendTranslation(lang) {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
-    let prompt = "";
-    if (lang === "ja") {
-      prompt = `以下を自然な日本語に翻訳してください。\n\n${text}`;
-    } else {
-      prompt = `Please translate the following text into natural English.\n\n${text}`;
-    }
+    const text = document.getElementById("userInput").value.trim(); if (!text) return;
+    const prompt = (lang === "ja") ? `以下を日本語に翻訳してください。\n\n${text}` : `Please translate into English:\n\n${text}`;
     sendMessage(prompt);
   }
 
   function sendReplyEmail(lang) {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
-    let prompt = "";
-    if (lang === "ja") {
-      prompt = `以下のメールに対して丁寧なビジネス返信メールを日本語で作成してください。\n\n${text}`;
-    } else {
-      prompt = `Please draft a polite business email reply in English based on the following incoming email:\n\n${text}`;
-    }
+    const text = document.getElementById("userInput").value.trim(); if (!text) return;
+    const prompt = (lang === "ja") ? `以下のメールに対して丁寧な日本語のビジネス返信を作成してください。\n\n${text}`
+                                    : `Please draft a polite business email reply in English based on the following:\n\n${text}`;
     sendMessage(prompt);
+  }
+
+  function sendPrompt(type) {
+    const text = document.getElementById("userInput").value.trim(); if (!text) return;
+    const prompts = {
+      summary: `以下の文章を要約してください。箇条書きでも構いません。\n\n${text}`,
+      action: `以下の内容から次のアクション項目を抽出してください。箇条書きで。 \n\n${text}`,
+      points: `以下の文章の要点を箇条書きで整理してください。\n\n${text}`,
+      polite: `以下の文章をより丁寧なビジネス表現にリライトしてください。\n\n${text}`,
+      schedule: `以下の内容を使って日程調整メールの文案を作成してください。\n\n${text}`,
+      call: `以下の電話内容を簡潔に要約してください。\n\n${text}`,
+      problems: `以下の文章の問題点・懸念事項を抽出してください。\n\n${text}`,
+      table: `以下の内容を整理して簡単な表や計算結果を作成してください。\n\n${text}`
+    };
+    sendMessage(prompts[type]);
   }
 </script>
 
