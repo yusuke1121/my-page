@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AI SaaS Business Assistant - 完全統合版</title>
+  <title>AI SaaS Business Assistant - 完全ドラフト対応版</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f2f2f2; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #0078d4; color: white; padding: 15px 20px; font-size: 1.5em; }
@@ -20,17 +20,13 @@
     .tooltip .tooltiptext { visibility: hidden; width: max-content; background-color: black; color: #fff; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
     .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
     .download { margin-top: 5px; }
-    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-    table, th, td { border: 1px solid #ccc; }
-    th, td { padding: 8px 12px; text-align: left; }
-    thead { background-color: #f0f0f0; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
 
-<header>AI SaaS Business Assistant 💼 完全統合版</header>
+<header>AI SaaS Business Assistant </header>
 
 <div id="container">
 
@@ -47,8 +43,8 @@
     <!-- ここからプロンプトボタン群 -->
     <span class="tooltip"><button onclick="sendTranslation('ja')">🇯🇵</button><span class="tooltiptext">日本語翻訳</span></span>
     <span class="tooltip"><button onclick="sendTranslation('en')">🇺🇸</button><span class="tooltiptext">英語翻訳</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文返信(.eml対応)</span></span>
-    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文返信(.eml対応)</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('ja')">📧</button><span class="tooltiptext">和文メール(.emlドラフト)</span></span>
+    <span class="tooltip"><button onclick="sendReplyEmail('en')">📧</button><span class="tooltiptext">英文メール(.emlドラフト)</span></span>
     <span class="tooltip"><button onclick="sendPrompt('summary')">📝</button><span class="tooltiptext">要約</span></span>
     <span class="tooltip"><button onclick="sendPrompt('action')">📋</button><span class="tooltiptext">アクション抽出</span></span>
     <span class="tooltip"><button onclick="sendPrompt('points')">🎯</button><span class="tooltiptext">要点抽出</span></span>
@@ -140,6 +136,7 @@ To: recipient@example.com
 Subject: AI Generated Email
 Date: ${new Date().toUTCString()}
 Content-Type: text/plain; charset=UTF-8
+X-Unsent: 1
 
 ${content}`;
       const blob = new Blob([eml], { type: "message/rfc822" });
