@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My Page 安定版</title>
+  <title>My Page 安定版 (URL入り)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<h1>My Page 安定版</h1>
+<h1>My Page 安定版 (URL入り)</h1>
 
 <div id="chat"></div>
 
@@ -22,10 +22,8 @@
 <button onclick="clearHistory()">履歴を削除</button>
 
 <script>
-  // ※ ここにご自身のCloudflare Workersの新URLを設定してください
-  const apiEndpoint = "https://YOUR-WORKERS-SUBDOMAIN.workers.dev/";
+  const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";  // ← ここがあなたのWorkers URL！
 
-  // ページ読み込み時に履歴復元
   window.onload = () => {
     const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
     history.forEach(({role, text}) => appendMessage(role, text, false));
