@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>My Page Vision版2</title>
+  <title>My Page with History</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
@@ -13,61 +13,76 @@
 </head>
 <body>
 
-<h1>My Page Vision版2</h1>
+<h1>My Page with History</h1>
 
 <div id="chat"></div>
 
-<textarea id="userInput" placeholder="メッセージを入力" style="width: 80%; height: 60px;"></textarea>
-<br>
-<input type="file" id="imageInput" accept="image/*"><br><br>
+<textarea id="userInput" placeholder="メッセージを入力" style="width: 80%; height: 60px;"></textarea><br><br>
 <button onclick="sendMessage()">送信</button>
+<button onclick="clearHistory()">履歴を削除</button>
 
 <script>
   const apiEndpoint = "https://wispy-sea-a162.ushishibaku.workers.dev/";
 
+  // ページ読み込み時に履歴復元
+  window.onload = () => {
+    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+    history.forEach(({role, text}) => appendMessage(role, text, false));
+  };
+
   async function sendMessage() {
     const input = document.getElementById("userInput");
-    const message = input.value;
-    const imageFile = document.getElementById("imageInput").files[0];
+    const message = input.value.trim();
+    if (!message) return;
 
-    if (!message && !imageFile) return;
-
-    appendMessage("user", message || "(画像のみ送信)");
+    appendMessage("user", message);
+    saveHistory("user", message);
     input.value = "";
 
     try {
-      const formData = new FormData();
-      formData.append("message", message);
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
-
       const response = await fetch(apiEndpoint, {
         method: "POST",
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: message }]
+        })
       });
 
       if (!response.ok) {
         appendMessage("ai", "エラーが発生しました: " + response.status);
+        saveHistory("ai", "エラーが発生しました: " + response.status);
         return;
       }
 
       const data = await response.json();
-      const aiReply = data.reply;
+      const aiReply = data.choices[0].message.content;
       appendMessage("ai", aiReply);
+      saveHistory("ai", aiReply);
     } catch (error) {
       appendMessage("ai", "通信エラー: " + error);
+      saveHistory("ai", "通信エラー: " + error);
     }
   }
 
-  function appendMessage(role, text) {
+  function appendMessage(role, text, scroll = true) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
     div.className = "message " + role;
-    const formattedText = text.replace(/\n/g, "<br>");
-    div.innerHTML = (role === "user" ? "あなた: " : "AI: ") + formattedText;
+    div.innerHTML = (role === "user" ? "あなた: " : "AI: ") + text.replace(/\n/g, "<br>");
     chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+    if (scroll) chat.scrollTop = chat.scrollHeight;
+  }
+
+  function saveHistory(role, text) {
+    const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+    history.push({ role, text });
+    localStorage.setItem("chatHistory", JSON.stringify(history));
+  }
+
+  function clearHistory() {
+    localStorage.removeItem("chatHistory");
+    document.getElementById("chat").innerHTML = "";
   }
 </script>
 
