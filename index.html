@@ -47,6 +47,8 @@
     <span class="tooltip"><button onclick="sendPrompt('problems')">🔎</button><span class="tooltiptext">問題点指摘</span></span>
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
     <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
+    <span class="tooltip"><button onclick="sendLastMessageAsMemo()">📨</button><span class="tooltiptext">最後のAIメッセージをメモ送信</span>
+</span>
   </div>
 
   <br><br>
@@ -249,6 +251,37 @@ async function sendMemo() {
   } catch {
     document.getElementById("memoStatus").innerText = "❌ 通信エラー";
   }
+}
+  function sendLastMessageAsMemo() {
+  const aiBubbles = document.querySelectorAll(".aiBubble");
+  if (aiBubbles.length === 0) {
+    alert("AIのメッセージがまだありません");
+    return;
+  }
+
+  const lastAiMessageHtml = aiBubbles[aiBubbles.length - 1].innerHTML;
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = lastAiMessageHtml;
+  const plainText = tempDiv.textContent || tempDiv.innerText || "";
+
+  if (!plainText.trim()) {
+    alert("最後のAIメッセージが空です");
+    return;
+  }
+
+  fetch("https://api.yusuke.life/memo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ memo: plainText })
+  }).then(res => {
+    if (res.ok) {
+      alert("✅ メール送信しました！");
+    } else {
+      alert("❌ メール送信に失敗しました");
+    }
+  }).catch(() => {
+    alert("❌ 通信エラーです");
+  });
 }
 </script>
 </body>
