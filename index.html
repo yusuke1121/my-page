@@ -28,7 +28,7 @@
 
 <div id="container">
   <div id="chat"></div>
-  <textarea id="userInput" placeholder="メッセージを入力 (Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
+  <textarea id="userInput" placeholder="メッセージを入力 (CNTL+Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
   <div>
     <button onclick="sendMessage()">🚀</button>
     <button onclick="clearHistory()">🗑️</button>
@@ -73,7 +73,7 @@ const apiEndpoint = "https://api.yusuke.life/";
 let isEmailReply = false;
 
 document.getElementById("userInput").addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); sendMessage(); }
 });
 
 window.onload = () => {
