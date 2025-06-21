@@ -24,11 +24,11 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-<header>AI Business Assistant2 💼</header>
+<header>AI Business Assistant 💼</header>
 
 <div id="container">
   <div id="chat"></div>
-  <textarea id="userInput" placeholder="メッセージを入力 (CNTL+Enterで送信 / Shift+Enterで改行)" rows="3"></textarea>
+  <textarea id="userInput" placeholder="メッセージを入力 (Ctrl+Enterで送信)" rows="3"></textarea>
   <div>
     <button onclick="sendMessage()">🚀</button>
     <button onclick="clearHistory()">🗑️</button>
@@ -47,17 +47,17 @@
     <span class="tooltip"><button onclick="sendPrompt('problems')">🔎</button><span class="tooltiptext">問題点指摘</span></span>
     <span class="tooltip"><button onclick="sendPrompt('table')">🧮</button><span class="tooltiptext">計算・表作成</span></span>
     <span class="tooltip"><button onclick="sendPrompt('tableFormatter')">📊</button><span class="tooltiptext">表出力</span></span>
-    <span class="tooltip"><button onclick="sendLastMessageAsMemo()">📨</button><span class="tooltiptext">最後のAIメッセージをメモ送信</span>
-</span>
+    <span class="tooltip"><button onclick="sendLastMessageAsMemo()">📨</button><span class="tooltiptext">最後のAIメッセージをメモ送信</span></span>
   </div>
-
   <br><br>
 
+  <!-- テンプレート入力 -->
   <input type="text" id="templateName" placeholder="テンプレ名" style="width: 20%;">
   <input type="text" id="templateText" placeholder="テンプレ内容" style="width: 50%;">
   <button onclick="saveTemplate()">＋保存</button>
   <button onclick="clearTemplates()">🗑 全削除</button>
   <div id="templateList"></div>
+
   <!-- 📌 メモ送信フォーム -->
   <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
     <h3>📌 メモ送信フォーム</h3>
@@ -65,15 +65,18 @@
     <button onclick="sendMemo()">メモ送信</button>
     <div id="memoStatus"></div>
   </div>
-
 </div> <!-- containerの閉じタグ -->
-<script>
 
+<!-- 🔽 スクリプト開始 -->
+<script>
 const apiEndpoint = "https://api.yusuke.life/";
 let isEmailReply = false;
 
 document.getElementById("userInput").addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); sendMessage(); }
+  if (e.key === "Enter" && e.ctrlKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 });
 
 window.onload = () => {
@@ -81,7 +84,6 @@ window.onload = () => {
   history.forEach(({role, text, time}) => appendMessage(role, text, time, false));
   loadTemplates();
 };
-
 async function sendMessage(prompt = null) {
   const input = document.getElementById("userInput");
   const message = prompt || input.value.trim();
@@ -96,11 +98,18 @@ async function sendMessage(prompt = null) {
   const bubbles = chat.getElementsByClassName("aiBubble");
   const lastBubble = bubbles[bubbles.length - 1];
 
+  // ✅ 履歴を OpenAI用 messages に変換
+  const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+  const messages = [
+    { role: "system", content: "You are AI SaaS Business Assistant" },
+    ...history.map(h => ({ role: h.role, content: h.text }))
+  ];
+
   try {
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ messages })
     });
 
     const reader = response.body.getReader();
@@ -113,26 +122,25 @@ async function sendMessage(prompt = null) {
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split("\n");
 
- for (const line of lines) {
-  if (!line.startsWith("data: ")) continue;
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.substring(6).trim();
+        if (!data || data === "[DONE]") continue;
 
-  const data = line.substring(6).trim();
-  if (!data || data === "[DONE]") continue;
-
-  try {
-    const json = JSON.parse(data);
-    const content = json.choices[0].delta?.content;
-    if (content) {
-      fullText += content;
-      lastBubble.innerHTML = marked.parse(fullText);
+        try {
+          const json = JSON.parse(data);
+          const content = json.choices[0].delta?.content;
+          if (content) {
+            fullText += content;
+            lastBubble.innerHTML = marked.parse(fullText);
+          }
+        } catch (err) {
+          console.error("JSONパースエラー:", data, err);
+          continue;
+        }
+      }
     }
-  } catch (err) {
-    console.error("JSONパースエラー:", data, err);
-    continue; // 無効な行は無視
-  }
-}
 
-    }
     saveHistory("ai", fullText, time);
     if (isEmailReply) createDownloadEML(fullText, time);
     isEmailReply = false;
@@ -141,7 +149,6 @@ async function sendMessage(prompt = null) {
     lastBubble.innerHTML = "🚫 通信エラー: " + err;
   }
 }
-
 function saveTemplate() {
   const name = document.getElementById("templateName").value.trim();
   const text = document.getElementById("templateText").value.trim();
@@ -235,7 +242,6 @@ function sendPrompt(type) {
   sendMessage(prompts[type]);
 }
 
-// ここが新しく追加したメモ送信API連携部分
 async function sendMemo() {
   const memo = document.getElementById("memoInput").value.trim();
   if (!memo) {
@@ -259,7 +265,8 @@ async function sendMemo() {
     document.getElementById("memoStatus").innerText = "❌ 通信エラー";
   }
 }
-  function sendLastMessageAsMemo() {
+
+function sendLastMessageAsMemo() {
   const aiBubbles = document.querySelectorAll(".aiBubble");
   if (aiBubbles.length === 0) {
     alert("AIのメッセージがまだありません");
